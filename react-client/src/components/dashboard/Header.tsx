@@ -1,32 +1,53 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 export default function Header() {
   const router = useRouter();
 
-  const handleLogout = async () => {
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-      router.push("/login");
-      router.refresh();
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
-  };
-
   return (
     <header className="bg-white dark:bg-gray-800 shadow">
       <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+
+        {/* Logo */}
+        <div
+          onClick={() => router.push("/")}
+          className="flex items-center gap-2 cursor-pointer"
         >
-          Logout
-        </button>
+          <Image
+            src="/logo.png"
+            alt="Logo"
+            width={200}
+            height={32}
+            className="object-contain"
+          />
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex items-center gap-6 text-gray-700 dark:text-gray-200">
+          <button onClick={() => router.push("/")} className="hover:text-blue-600">
+            Home
+          </button>
+
+          <button onClick={() => router.push("/about")} className="hover:text-blue-600">
+            About
+          </button>
+
+          <button onClick={() => router.push("/login")} className="hover:text-blue-600">
+            Login
+          </button>
+
+          <button
+            onClick={() => router.push("/signup")}
+            className="hover:text-blue-600"
+          >
+            Signup
+          </button>
+
+        </nav>
+
       </div>
     </header>
   );
 }
-
