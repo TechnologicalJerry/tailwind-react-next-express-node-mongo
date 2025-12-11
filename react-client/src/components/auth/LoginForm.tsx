@@ -23,16 +23,12 @@ export default function LoginForm() {
       setError("");
 
       try {
-        const response = await authService.login(
+        await authService.login(
           values.email,
           values.password
         );
-
         router.push("/dashboard");
-        router.refresh();
-
-   
-      } catch (error) {
+      } catch {
         setError("An error occurred. Please try again.");
       } finally {
         setIsLoading(false);
@@ -42,7 +38,6 @@ export default function LoginForm() {
 
   const handleShowPassword = () => {
     setShowPassword(true);
-
     // Auto-hide password after 3 seconds
     setTimeout(() => setShowPassword(false), 3000);
   };
