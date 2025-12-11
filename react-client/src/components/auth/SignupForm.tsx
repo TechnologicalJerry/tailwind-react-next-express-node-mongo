@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import { useForm } from "@/hooks/useForm";
-import { authService } from "@/services/authService";
+import { apiService } from "@/services/authService";
 
 export default function SignupForm() {
   const router = useRouter();
