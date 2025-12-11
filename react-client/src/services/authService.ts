@@ -1,5 +1,6 @@
-import { apiClient } from "@/lib/apiClient";
+import { apiService } from "@/services/appService";
 import { User } from "@/types/user";
+import { get } from "http";
 
 interface LoginResponse {
   success: boolean;
@@ -19,10 +20,17 @@ interface ForgotPasswordResponse {
   error?: string;
 }
 
+function getErrorMessage(error: unknown, message?: string): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return message || "Something went wrong";
+}
+
 export const authService = {
   async login(email: string, password: string): Promise<LoginResponse> {
+    console.log("Attempting login with", { email, password });
     try {
-      const response = await apiClient.post<{ user: User; token: string }>(
+      const response = await apiService.post<{ user: User; token: string }>(
         "/auth/login",
         { email, password }
       );
@@ -32,12 +40,13 @@ export const authService = {
         user: response.user,
         token: response.token,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message || "Login failed",
+        error: getErrorMessage(error),
       };
     }
+
   },
 
   async signup(data: {
@@ -46,7 +55,7 @@ export const authService = {
     name?: string;
   }): Promise<SignupResponse> {
     try {
-      const response = await apiClient.post<{ user: User }>(
+      const response = await apiService.post<{ user: User }>(
         "/auth/signup",
         data
       );
@@ -55,17 +64,17 @@ export const authService = {
         success: true,
         user: response.user,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message || "Signup failed",
+        error: getErrorMessage(error, "Signup failed"),
       };
     }
   },
 
   async logout(): Promise<void> {
     try {
-      await apiClient.post("/auth/logout");
+      await apiService.post("/auth/logout");
     } catch (error) {
       console.error("Logout error:", error);
     }
@@ -73,23 +82,25 @@ export const authService = {
 
   async forgotPassword(email: string): Promise<ForgotPasswordResponse> {
     try {
-      await apiClient.post("/auth/forgot-password", { email });
+      await apiService.post("/auth/forgot-password", { email });
       return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         success: false,
-        error: error.message || "Failed to send reset email",
+        error: getErrorMessage(error, "Failed to send reset email"),
       };
     }
   },
 
   async getCurrentUser(): Promise<User | null> {
     try {
-      const user = await apiClient.get<User>("/auth/me");
+      const user = await apiService.get<User>("/auth/me");
       return user;
     } catch (error) {
       return null;
     }
   },
 };
+
+export { apiService };
 
