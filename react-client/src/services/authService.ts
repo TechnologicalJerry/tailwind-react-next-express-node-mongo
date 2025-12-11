@@ -1,6 +1,5 @@
 import { apiService } from "@/services/appService";
 import { User } from "@/types/user";
-import { get } from "http";
 
 interface LoginResponse {
   success: boolean;
@@ -96,7 +95,7 @@ export const authService = {
     try {
       const user = await apiService.get<User>("/auth/me");
       return user;
-    } catch (error) {
+    } catch {
       return null;
     }
   },
