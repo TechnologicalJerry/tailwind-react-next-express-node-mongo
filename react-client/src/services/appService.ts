@@ -1,9 +1,10 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5050";
 
-interface RequestOptions {
+interface RequestOptions<BodyType = unknown> {
   method?: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
   headers?: Record<string, string>;
-  body?: any;
+  body?: BodyType;
 }
 
 class ApiService {
@@ -13,10 +14,10 @@ class ApiService {
     this.baseURL = baseURL;
   }
 
-  private async request<T>(
+  private async request<TResponse, TBody = unknown>(
     endpoint: string,
-    options: RequestOptions = {}
-  ): Promise<T> {
+    options: RequestOptions<TBody> = {}
+  ): Promise<TResponse> {
     const { method = "GET", headers = {}, body } = options;
 
     const config: RequestInit = {
@@ -27,11 +28,11 @@ class ApiService {
       },
     };
 
-    if (body) {
+    if (body !== undefined) {
       config.body = JSON.stringify(body);
     }
 
-    // Add auth token if available
+    // Attach token from cookie (browser only)
     if (typeof window !== "undefined") {
       const token = document.cookie
         .split("; ")
@@ -49,50 +50,70 @@ class ApiService {
     const response = await fetch(`${this.baseURL}${endpoint}`, config);
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        message: "An error occurred",
-      }));
-      throw new Error(error.message || `HTTP error! status: ${response.status}`);
+      let message = "An error occurred";
+
+      try {
+        const errorJson = (await response.json()) as { message?: string };
+        if (errorJson?.message) message = errorJson.message;
+      } catch {
+        // ignore json parse errors
+      }
+
+      throw new Error(message);
     }
 
-    return response.json();
+    return (await response.json()) as TResponse;
   }
 
-  async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
-    return this.request<T>(endpoint, { method: "GET", headers });
-  }
-
-  async post<T>(
-    endpoint: string,
-    body?: any,
-    headers?: Record<string, string>
-  ): Promise<T> {
-    return this.request<T>(endpoint, { method: "POST", body, headers });
-  }
-
-  async put<T>(
-    endpoint: string,
-    body?: any,
-    headers?: Record<string, string>
-  ): Promise<T> {
-    return this.request<T>(endpoint, { method: "PUT", body, headers });
-  }
-
-  async patch<T>(
-    endpoint: string,
-    body?: any,
-    headers?: Record<string, string>
-  ): Promise<T> {
-    return this.request<T>(endpoint, { method: "PATCH", body, headers });
-  }
-
-  async delete<T>(
+  async get<TResponse>(
     endpoint: string,
     headers?: Record<string, string>
-  ): Promise<T> {
-    return this.request<T>(endpoint, { method: "DELETE", headers });
+  ): Promise<TResponse> {
+    return this.request<TResponse>(endpoint, { method: "GET", headers });
+  }
+
+  async post<TResponse, TBody = unknown>(
+    endpoint: string,
+    body?: TBody,
+    headers?: Record<string, string>
+  ): Promise<TResponse> {
+    return this.request<TResponse, TBody>(endpoint, {
+      method: "POST",
+      body,
+      headers,
+    });
+  }
+
+  async put<TResponse, TBody = unknown>(
+    endpoint: string,
+    body?: TBody,
+    headers?: Record<string, string>
+  ): Promise<TResponse> {
+    return this.request<TResponse, TBody>(endpoint, {
+      method: "PUT",
+      body,
+      headers,
+    });
+  }
+
+  async patch<TResponse, TBody = unknown>(
+    endpoint: string,
+    body?: TBody,
+    headers?: Record<string, string>
+  ): Promise<TResponse> {
+    return this.request<TResponse, TBody>(endpoint, {
+      method: "PATCH",
+      body,
+      headers,
+    });
+  }
+
+  async delete<TResponse>(
+    endpoint: string,
+    headers?: Record<string, string>
+  ): Promise<TResponse> {
+    return this.request<TResponse>(endpoint, { method: "DELETE", headers });
   }
 }
 
 export const apiService = new ApiService(API_BASE_URL);
-
