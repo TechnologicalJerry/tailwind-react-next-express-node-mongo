@@ -5,12 +5,22 @@ export const metadata = {
 
 export default function HomePage() {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-4">Home</h1>
-      <p className="text-gray-600 dark:text-gray-400">
-        Welcome to the home page.
-      </p>
-    </div>
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4">
+      <section className="text-center py-20">
+        <h1 className="text-4xl font-bold mb-4 text-gray-900">
+          Welcome to My Next.js App
+        </h1>
+
+        <p className="text-lg text-gray-600 max-w-xl mx-auto">
+          This is a simple home section using Tailwind CSS.
+          Modify this template as you like!
+        </p>
+
+        <button className="mt-6 px-6 py-3 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+          Get Started
+        </button>
+      </section>
+    </main>
   );
 }
 
