@@ -11,6 +11,7 @@ export default function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const { values, handleChange, handleSubmit } = useForm({
     initialValues: {
@@ -22,29 +23,29 @@ export default function LoginForm() {
       setError("");
 
       try {
-        const response = await fetch("/api/auth/login", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        });
+        const response = await authService.login(
+          values.email,
+          values.password
+        );
 
-        const data = await response.json();
+        router.push("/dashboard");
+        router.refresh();
 
-        if (response.ok) {
-          router.push("/dashboard");
-          router.refresh();
-        } else {
-          setError(data.error || "Login failed");
-        }
-      } catch (err) {
+   
+      } catch (error) {
         setError("An error occurred. Please try again.");
       } finally {
         setIsLoading(false);
       }
     },
   });
+
+  const handleShowPassword = () => {
+    setShowPassword(true);
+
+    // Auto-hide password after 3 seconds
+    setTimeout(() => setShowPassword(false), 3000);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -63,14 +64,25 @@ export default function LoginForm() {
         required
       />
 
-      <Input
-        type="password"
-        name="password"
-        label="Password"
-        value={values.password}
-        onChange={handleChange}
-        required
-      />
+      {/* Password Input with Show Button */}
+      <div className="relative">
+        <Input
+          type={showPassword ? "text" : "password"}
+          name="password"
+          label="Password"
+          value={values.password}
+          onChange={handleChange}
+          required
+        />
+
+        <button
+          type="button"
+          onClick={handleShowPassword}
+          className="absolute right-3 top-9 text-sm text-blue-600 hover:text-blue-800"
+        >
+          Show
+        </button>
+      </div>
 
       <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? "Signing in..." : "Sign In"}
@@ -87,4 +99,3 @@ export default function LoginForm() {
     </form>
   );
 }
-
