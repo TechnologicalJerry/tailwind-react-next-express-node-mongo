@@ -1,23 +1,45 @@
-import express, { Request, Response } from 'express';
-import config from 'config';
-import connect from './utilitys/connectDb';
-import routes from "./routes";
-import swaggerDocs from "./utilitys/swagger";
-import dotenv from "dotenv";
+import app from './app';
+import connectDB from './config/db.config';
+import { env } from './config/env.config';
+import logger from './utils/logger';
+import http from 'http';
 
-dotenv.config();
+const PORT = Number(env.PORT) || 9000;
 
-const app = express();
+// Connect to database
+connectDB()
+  .then(() => {
+    // Start server
+    const server = http.createServer(app);
+    server.listen(PORT, () => {
+      logger.info(`Server running in ${env.NODE_ENV} mode on port ${PORT}`);
+      logger.info(`API Documentation available at http://localhost:${PORT}/api-docs`);
+    });
+  })
+  .catch((error) => {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  });
 
-const PORT = config.get<number>('serverPort');
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err: Error) => {
+  logger.error('Unhandled Promise Rejection:', err);
+  process.exit(1);
+});
 
-app.use(express.json());
+// Handle uncaught exceptions
+process.on('uncaughtException', (err: Error) => {
+  logger.error('Uncaught Exception:', err);
+  process.exit(1);
+});
 
-app.listen(PORT, async () => {
-    console.log(`Server is running!!!!!!!! on PORT = ${PORT}`);
-    await connect();
-    routes(app);
-    swaggerDocs(app, PORT);
-})
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('SIGTERM received. Shutting down gracefully...');
+  process.exit(0);
+});
 
-
+process.on('SIGINT', () => {
+  logger.info('SIGINT received. Shutting down gracefully...');
+  process.exit(0);
+});
